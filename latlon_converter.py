@@ -2,9 +2,14 @@ import csv
 import googlemaps
 from googlemaps import client
 
-API = '' #input API
+# API = 'AIzaSyC1vrBspDxhJrc4U2vEoDDgceosKp3_Dz8'
+API = 'AIzaSyC0K-YdtaagBKb8S0egi4hTrn5xheYvwqw'
+# API = 'AIzaSyAvvjBBleVflH_KXaAhWu4cupZsj2DtX04'
+# API = 'AIzaSyCuI5pO-R6Pl_LMORS63U3pd-USnhloQpw'
+
 client = googlemaps.Client(key=API)
-filename = '' #input filename (e.g. data_1)
+filename = 'Data/data8' #input filename (e.g. Data\...)
+new_filename= 'Data/data8latlon'
 
 address = [] # List of address of provider
 coordinates = [['Latitude','Longtitude']] # List of coordniates
@@ -34,6 +39,7 @@ def address_to_latlon(client,address):
 # print addresstolatlon(client,address)
 
 for each_address in address:
+	print each_address
 	coordinates.append(address_to_latlon(client, each_address))
 
 """adding latitude and longtitude to CSV file"""
@@ -44,9 +50,8 @@ with open (filename,'rb') as csvfile:
 		new_row=row
 		new_row.append(coordinates[i][0])
 		new_row.append(coordinates[i][1])
-		print new_row
 		new_rows.append(new_row)
 
-with open (filename,'wb') as csvfile:
+with open (new_filename,'wb') as csvfile:
 	writer=csv.writer(csvfile)
 	writer.writerows(new_rows)
