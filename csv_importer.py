@@ -1,10 +1,3 @@
-from pygeocoder import Geocoder
-results = Geocoder.geocode("Tian'anmen, Beijing")
-# gmaps = GoogleMaps()
-# address ='1000 Olin way'
-# lat,lng = gmaps.address_to_latlng(address)
-print (results[0].coordinates)
-
 # import csv
 # DRG=[]
 # with open ('IPS') as csvfile:
