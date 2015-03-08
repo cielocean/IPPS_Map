@@ -13,14 +13,14 @@ from bokeh.resources import INLINE
 #from pygeocoder import Geocoder
 import csv
 
-filename = 'Inpatient_Prospective_Payment_System__IPPS__Provider_Summary_for_the_Top_100_Diagnosis-Related_Groups__DRG__-_FY2011.csv'
+filename = 'IPS.csv'
 
 x_range = Range1d()
 y_range = Range1d()
-lat_data = []
-lon_data = []
-size = []
-fill = []
+lat_data = [30.2861, 30.2855, 30.2869]
+lon_data = [-97.7394, -97.7390, -97.7405]
+size_data = [15,15,15]
+fill_data = ['orange','blue','green']
 DRG_list = []
 
 class Procedure(object):
@@ -76,10 +76,10 @@ plot.map_options.map_type="hybrid"
 
 source = ColumnDataSource(
     data=dict(
-        lat=lat_data
-        lon=lon_data
-        size=size_data
-        fill=fill_data
+        lat = lat_data,
+        lon = lon_data,
+        size = size_data,
+        fill = fill_data,
     )
 )
 
