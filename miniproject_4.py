@@ -13,56 +13,53 @@ from bokeh.resources import INLINE
 #from pygeocoder import Geocoder
 import csv
 
-filename = 'IPS.csv'
+filename = 'Data/data1latlon'
 
 x_range = Range1d()
 y_range = Range1d()
-lat_data = [30.2861, 30.2855, 30.2869]
-lon_data = [-97.7394, -97.7390, -97.7405]
-size_data = [15,15,15]
-fill_data = ['orange','blue','green']
-DRG_list = []
+lat_data = []
+lon_data = []
+size_data = []
+fill_data = []
+# class Procedure(object):
+#     def __init__ (self, location = object['Provider Name'] + " " + object['Provider Street Address'], total_payments = object[' Average Total Payments '], total_discharges = object[' Total Discharges']):
+#         self.location = location
+#         self.total_payments = total_payments
+#         self.total_discharges = total_discharges
 
-class Procedure(object):
-    def __init__ (self, location = object['Provider Name'] + " " + object['Provider Street Address'], total_payments = object[' Average Total Payments '], total_discharges = object[' Total Discharges']):
-        self.location = location
-        self.total_payments = total_payments
-        self.total_discharges = total_discharges
+#     #
+#     def get_latlon():
+#         results = Geocoder.geocode(self.location)
+#         return [results[0].coordinates[0],results[0].coordinates[1]]
 
-    #
-    def get_latlon():
-        results = Geocoder.geocode(self.location)
-        return [results[0].coordinates[0],results[0].coordinates[1]]
+#     #
+#     def get_size():
+#         total_pay = self.total_payments.strip('$')
+#         size = float(total_pay)/800
+#         return size
 
-    #
-    def get_size():
-        total_pay = self.total_payments.strip('$')
-        size = float(total_pay)/800
-        return size
-
-    #translate number of discharges to a greyscale color
-    def get_color():
-        if float(self.total_discharges) > 100:
-            color = 1
-        else:
-            color = float(discharges)/100
-        return str(color)
+#     #translate number of discharges to a greyscale color
+#     def get_color():
+#         if float(self.total_discharges) > 100:
+#             color = 1
+#         else:
+#             color = float(discharges)/100
+#         return str(color)
 
 
 with open(filename) as fp:
     reader = csv.DictReader(fp)
-    for line in reader:
-        if line.get('DRG Definition') not in DRG_list:
-            DRG_list.append(line.get('DRG Definition'))
-    print(DRG_list)
+    # for line in reader:
+    #     if line.get('DRG Definition') not in DRG_list:
+    #         DRG_list.append(line.get('DRG Definition'))
+    # print(DRG_list)
     fp.seek(0)
     #Go through each line and update appropriate lists with necessary information
     for line in reader:
-        point  = Procedure(line)
-        lat.append(point.get_lat())
-        lon.append(point.get_lon())
-        size.append(point.get_size())
-        fill.append(point.get_color())
+        lat_data.append(line['Latitude'])
+        lon_data.append(line['Longtitude'])
+        size_data.append(15)
+        fill_data.append('blue')
 
 
 map_options = GMapOptions(lat=30.2861, lng=-97.7394, zoom=15)
