@@ -12,8 +12,9 @@ from bokeh.models import (
 from bokeh.resources import INLINE
 #from pygeocoder import Geocoder
 import csv
+import pandas as pd
 
-filename = 'Data/data1latlon'
+filename = 'Data/IPPSlatlon'
 
 x_range = Range1d()
 y_range = Range1d()
@@ -21,6 +22,22 @@ lat_data = []
 lon_data = []
 size_data = []
 fill_data = []
+
+"""Importing data file as class 'pandas.core.frame.DataFrame'"""
+data = pd.read_csv(
+    filename
+    )
+
+"""Adding data files"""
+size = 15
+fill = 'blue'
+for i in data.get('Latitude'):
+    lat_data.append(i)
+for i in data.get('Longtitude'):
+    lon_data.append(i)
+    size_data.append(size)
+    fill_data.append(fill)
+
 # class Procedure(object):
 #     def __init__ (self, location = object['Provider Name'] + " " + object['Provider Street Address'], total_payments = object[' Average Total Payments '], total_discharges = object[' Total Discharges']):
 #         self.location = location
@@ -46,28 +63,12 @@ fill_data = []
 #             color = float(discharges)/100
 #         return str(color)
 
-
-with open(filename) as fp:
-    reader = csv.DictReader(fp)
-    # for line in reader:
-    #     if line.get('DRG Definition') not in DRG_list:
-    #         DRG_list.append(line.get('DRG Definition'))
-    # print(DRG_list)
-    fp.seek(0)
-    #Go through each line and update appropriate lists with necessary information
-    for line in reader:
-        lat_data.append(line['Latitude'])
-        lon_data.append(line['Longtitude'])
-        size_data.append(15)
-        fill_data.append('blue')
-
-
 map_options = GMapOptions(lat=30.2861, lng=-97.7394, zoom=15)
 
 plot = GMapPlot(
     x_range=x_range, y_range=y_range,
     map_options=map_options,
-    title = "Austin"
+    title = "IPPS"
 )
 plot.map_options.map_type="hybrid"
 
@@ -89,12 +90,14 @@ pan = PanTool()
 wheel_zoom = WheelZoomTool()
 box_select = BoxSelectTool()
 hover = HoverTool()
+
 hover.tooltips = [
     ("index","$index"),
     ("(lat,lon)","$x,$y"),
     ("size","@size"),
     ("Number of Discharges","@fill")
 ]
+
 plot.add_tools(pan, wheel_zoom, box_select,hover)
 
 #set Axis
