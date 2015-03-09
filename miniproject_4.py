@@ -26,16 +26,10 @@ csvdata = pd.read_csv(
     )
 
 """Adding data files as lists in dictionary"""
-header=[]
 data ={}
 
-for line in csvdata:
-    header.append(line)
-print (header)
-for key in header:
+for key in csvdata:
     data[key] = []
-
-for key in data.iterkeys():
     for i in csvdata.get(key):
         data[key].append(i)
 
