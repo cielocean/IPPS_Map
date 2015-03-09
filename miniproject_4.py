@@ -13,7 +13,7 @@ from bokeh.resources import INLINE
 #from pygeocoder import Geocoder
 import csv
 
-filename = 'Data/data1latlon'
+filename = 'Data/IPPSlatlon'
 
 x_range = Range1d()
 y_range = Range1d()
@@ -21,46 +21,22 @@ lat_data = []
 lon_data = []
 size_data = []
 fill_data = []
-# class Procedure(object):
-#     def __init__ (self, location = object['Provider Name'] + " " + object['Provider Street Address'], total_payments = object[' Average Total Payments '], total_discharges = object[' Total Discharges']):
-#         self.location = location
-#         self.total_payments = total_payments
-#         self.total_discharges = total_discharges
-
-#     #
-#     def get_latlon():
-#         results = Geocoder.geocode(self.location)
-#         return [results[0].coordinates[0],results[0].coordinates[1]]
-
-#     #
-#     def get_size():
-#         total_pay = self.total_payments.strip('$')
-#         size = float(total_pay)/800
-#         return size
-
-#     #translate number of discharges to a greyscale color
-#     def get_color():
-#         if float(self.total_discharges) > 100:
-#             color = 1
-#         else:
-#             color = float(discharges)/100
-#         return str(color)
-
+total_discharges_data =[]
+total_cost_data  = []
 
 with open(filename) as fp:
     reader = csv.DictReader(fp)
-    # for line in reader:
-    #     if line.get('DRG Definition') not in DRG_list:
-    #         DRG_list.append(line.get('DRG Definition'))
-    # print(DRG_list)
     fp.seek(0)
     #Go through each line and update appropriate lists with necessary information
-    for line in reader:
-        lat_data.append(line['Latitude'])
-        lon_data.append(line['Longtitude'])
+    for i,line in enumerate(reader):
+        if i == 0:
+            continue 
+        lat_data.append(float(line['Latitude']))
+        lon_data.append(float(line['Longtitude']))
         size_data.append(15)
         fill_data.append('blue')
-
+        total_discharges_data.append(line[' Total Discharges '])
+        total_cost_data.append(line[' Average Total Payments '])
 
 map_options = GMapOptions(lat=30.2861, lng=-97.7394, zoom=15)
 
@@ -70,6 +46,9 @@ plot = GMapPlot(
     title = "Austin"
 )
 plot.map_options.map_type="hybrid"
+print("lat ", lat_data[:10])
+print("lon ", lon_data[:10])
+print("size ", size_data[:10])
 
 source = ColumnDataSource(
     data=dict(
@@ -77,11 +56,24 @@ source = ColumnDataSource(
         lon = lon_data,
         size = size_data,
         fill = fill_data,
+        total_discharges = total_discharges_data,
+        total_cost = total_cost_data,
     )
 )
 
+# source = ColumnDataSource(
+#     data=dict(
+#         lat=[30.2861, 30.2855, 30.2869],
+#         lon=[-97.7394, -97.7390, -97.7405],
+#         fill=['orange', 'blue', 'green']
+#     )
+# )
+
+#circle = Circle(x="lon", y="lat", size=15, fill_color="fill", line_color="black")
+
+
 #create all the points based on source data
-circle = Circle(x="lon", y="lat", size="size", fill_color="fill", line_color="black")
+circle = Circle(x="lon", y="lat", size=15, fill_color="fill", line_color="black")
 plot.add_glyph(source, circle)
 
 #set and add interactive tools
@@ -91,9 +83,9 @@ box_select = BoxSelectTool()
 hover = HoverTool()
 hover.tooltips = [
     ("index","$index"),
-    ("(lat,lon)","$x,$y"),
-    ("size","@size"),
-    ("Number of Discharges","@fill")
+    ("(lat,lon)","$x, $y"),
+    ("Average Cost","@total_cost"),
+    ("Number of Discharges","@total_discharges")
 ]
 plot.add_tools(pan, wheel_zoom, box_select,hover)
 
