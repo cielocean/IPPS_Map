@@ -18,52 +18,29 @@ filename = 'Data/IPPSlatlon'
 
 x_range = Range1d()
 y_range = Range1d()
-lat_data = []
-lon_data = []
-size_data = []
-fill_data = []
+
 
 """Importing data file as class 'pandas.core.frame.DataFrame'"""
-data = pd.read_csv(
+csvdata = pd.read_csv(
     filename
     )
 
-"""Adding data files"""
-size = 15
-fill = 'blue'
-for i in data.get('Latitude'):
-    lat_data.append(i)
-for i in data.get('Longtitude'):
-    lon_data.append(i)
-    size_data.append(size)
-    fill_data.append(fill)
+"""Adding data files as lists in dictionary"""
+header=[]
+data ={}
 
-# class Procedure(object):
-#     def __init__ (self, location = object['Provider Name'] + " " + object['Provider Street Address'], total_payments = object[' Average Total Payments '], total_discharges = object[' Total Discharges']):
-#         self.location = location
-#         self.total_payments = total_payments
-#         self.total_discharges = total_discharges
+for line in csvdata:
+    header.append(line)
+print (header)
+for key in header:
+    data[key] = []
 
-#     #
-#     def get_latlon():
-#         results = Geocoder.geocode(self.location)
-#         return [results[0].coordinates[0],results[0].coordinates[1]]
+for key in data.iterkeys():
+    for i in csvdata.get(key):
+        data[key].append(i)
 
-#     #
-#     def get_size():
-#         total_pay = self.total_payments.strip('$')
-#         size = float(total_pay)/800
-#         return size
 
-#     #translate number of discharges to a greyscale color
-#     def get_color():
-#         if float(self.total_discharges) > 100:
-#             color = 1
-#         else:
-#             color = float(discharges)/100
-#         return str(color)
-
-map_options = GMapOptions(lat=30.2861, lng=-97.7394, zoom=15)
+map_options = GMapOptions(lat=data['Latitude'][0], lng=data['Longtitude'][0], zoom=15)
 
 plot = GMapPlot(
     x_range=x_range, y_range=y_range,
@@ -74,15 +51,23 @@ plot.map_options.map_type="hybrid"
 
 source = ColumnDataSource(
     data=dict(
-        lat = lat_data,
-        lon = lon_data,
-        size = size_data,
-        fill = fill_data,
+        lat = data['Latitude'],
+        lon = data['Longtitude'],
+        DRG = data['DRG Definition'],
+        name = data['Provider Name'],
+        referral = data['Hospital Referral Region Description'],
+        discharges = data[' Total Discharges '],
+        covered = data[' Average Covered Charges '],
+        payments_total = data[' Average Total Payments '],
+        payments_medical = data['Average Medicare Payments'],
+        street = data['Provider Street Address'],
+        city = data['Provider City'],
+        state = data['Provider State']
     )
 )
 
 #create all the points based on source data
-circle = Circle(x="lon", y="lat", size="size", fill_color="fill", line_color="black")
+circle = Circle(x='lon', y='lat', size=15, fill_color="blue", line_color="black")
 plot.add_glyph(source, circle)
 
 #set and add interactive tools
@@ -93,9 +78,9 @@ hover = HoverTool()
 
 hover.tooltips = [
     ("index","$index"),
-    ("(lat,lon)","$x,$y"),
-    ("size","@size"),
-    ("Number of Discharges","@fill")
+    ("lat,lon","$x,$y"),
+    ("cost","@payments_total"),
+    ("Number of Discharges","@discharges")
 ]
 
 plot.add_tools(pan, wheel_zoom, box_select,hover)
