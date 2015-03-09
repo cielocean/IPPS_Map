@@ -17,7 +17,7 @@ for i in range(1,filenumber+1):
 				if i==1:
 					header=row
 					compiled_rows=[header] #create list for all data
-				pass #pass header of each file unless it is the first file
+				continue #pass header of each file unless it is the first file
 			compiled_rows.append(row)
 
 with open (compiled_file,'wb') as csvfile:
