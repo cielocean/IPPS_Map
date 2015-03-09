@@ -25,7 +25,7 @@ csvdata = pd.read_csv(
     filename
     )
 
-"""Adding data files as lists in dictionary"""
+"""Adding data files as lists (for each header)dictionary"""
 data ={}
 
 for key in csvdata:
