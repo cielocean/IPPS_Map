@@ -12,68 +12,56 @@ from bokeh.models import (
 from bokeh.resources import INLINE
 #from pygeocoder import Geocoder
 import csv
+import pandas as pd
 
 filename = 'Data/IPPSlatlon'
 
 x_range = Range1d()
 y_range = Range1d()
-lat_data = []
-lon_data = []
-size_data = []
-fill_data = []
-total_discharges_data =[]
-total_cost_data  = []
 
-with open(filename) as fp:
-    reader = csv.DictReader(fp)
-    fp.seek(0)
-    #Go through each line and update appropriate lists with necessary information
-    for i,line in enumerate(reader):
-        if i == 0:
-            continue 
-        lat_data.append(float(line['Latitude']))
-        lon_data.append(float(line['Longtitude']))
-        size_data.append(15)
-        fill_data.append('blue')
-        total_discharges_data.append(line[' Total Discharges '])
-        total_cost_data.append(line[' Average Total Payments '])
 
-map_options = GMapOptions(lat=30.2861, lng=-97.7394, zoom=15)
+"""Importing data file as class 'pandas.core.frame.DataFrame'"""
+csvdata = pd.read_csv(
+    filename
+    )
+
+"""Adding data files as lists (one list for each header) in dictionary"""
+data ={}
+
+for key in csvdata:
+    data[key] = []
+    for i in csvdata.get(key):
+        data[key].append(i)
+
+
+map_options = GMapOptions(lat=data['Latitude'][0], lng=data['Longtitude'][0], zoom=15)
 
 plot = GMapPlot(
     x_range=x_range, y_range=y_range,
     map_options=map_options,
-    title = "Austin"
+    title = "IPPS"
 )
 plot.map_options.map_type="hybrid"
-print("lat ", lat_data[:10])
-print("lon ", lon_data[:10])
-print("size ", size_data[:10])
 
 source = ColumnDataSource(
     data=dict(
-        lat = lat_data,
-        lon = lon_data,
-        size = size_data,
-        fill = fill_data,
-        total_discharges = total_discharges_data,
-        total_cost = total_cost_data,
+        lat = data['Latitude'],
+        lon = data['Longtitude'],
+        DRG = data['DRG Definition'],
+        name = data['Provider Name'],
+        referral = data['Hospital Referral Region Description'],
+        discharges = data[' Total Discharges '],
+        covered = data[' Average Covered Charges '],
+        payments_total = data[' Average Total Payments '],
+        payments_medical = data['Average Medicare Payments'],
+        street = data['Provider Street Address'],
+        city = data['Provider City'],
+        state = data['Provider State']
     )
 )
 
-# source = ColumnDataSource(
-#     data=dict(
-#         lat=[30.2861, 30.2855, 30.2869],
-#         lon=[-97.7394, -97.7390, -97.7405],
-#         fill=['orange', 'blue', 'green']
-#     )
-# )
-
-#circle = Circle(x="lon", y="lat", size=15, fill_color="fill", line_color="black")
-
-
 #create all the points based on source data
-circle = Circle(x="lon", y="lat", size=15, fill_color="fill", line_color="black")
+circle = Circle(x='lon', y='lat', size=15, fill_color="blue", line_color="black")
 plot.add_glyph(source, circle)
 
 #set and add interactive tools
@@ -81,12 +69,14 @@ pan = PanTool()
 wheel_zoom = WheelZoomTool()
 box_select = BoxSelectTool()
 hover = HoverTool()
+
 hover.tooltips = [
     ("index","$index"),
-    ("(lat,lon)","$x, $y"),
-    ("Average Cost","@total_cost"),
-    ("Number of Discharges","@total_discharges")
+    ("lat,lon","$x,$y"),
+    ("cost","@payments_total"),
+    ("Number of Discharges","@discharges")
 ]
+
 plot.add_tools(pan, wheel_zoom, box_select,hover)
 
 #set Axis
