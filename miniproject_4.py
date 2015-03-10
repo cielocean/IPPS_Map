@@ -12,29 +12,29 @@ from bokeh.models import (
 from bokeh.resources import INLINE
 #from pygeocoder import Geocoder
 import csv
-import pandas as pd
 
 filename = 'Data/IPPSlatlon'
 
 x_range = Range1d()
 y_range = Range1d()
 
+def get_data (ticker):
+    with open(filename) as fp:
+        reader = csv.DictReader(fp)
+        fp.seek(0)
 
-"""Importing data file as class 'pandas.core.frame.DataFrame'"""
-csvdata = pd.read_csv(
-    filename
-    )
+        complist=[]
+        data={}
+        for line in reader:
+            if line['DRG Definition'] == ticker:
+                complist.append(line)
+        for key in complist[0].iterkeys():
+            data[key] = [data[key] for data in complist]
+        return data
 
-"""Adding data files as lists (one list for each header) in dictionary"""
-data ={}
-
-for key in csvdata:
-    data[key] = []
-    for i in csvdata.get(key):
-        data[key].append(i)
-
-
-map_options = GMapOptions(lat=data['Latitude'][0], lng=data['Longtitude'][0], zoom=15)
+data = get_data('039 - EXTRACRANIAL PROCEDURES W/O CC/MCC')
+# print(data)
+map_options = GMapOptions(lat=float(data['Latitude'][0]), lng=float(data['Longtitude'][0]), zoom=15)
 
 plot = GMapPlot(
     x_range=x_range, y_range=y_range,
@@ -45,8 +45,8 @@ plot.map_options.map_type="hybrid"
 
 source = ColumnDataSource(
     data=dict(
-        lat = data['Latitude'],
-        lon = data['Longtitude'],
+        lat = [float(i) for i in data['Latitude']],
+        lon = [float(i) for i in data['Longtitude']],
         DRG = data['DRG Definition'],
         name = data['Provider Name'],
         referral = data['Hospital Referral Region Description'],
@@ -56,7 +56,8 @@ source = ColumnDataSource(
         payments_medical = data['Average Medicare Payments'],
         street = data['Provider Street Address'],
         city = data['Provider City'],
-        state = data['Provider State']
+        state = data['Provider State'],
+        zip = data['Provider Zip Code']
     )
 )
 
@@ -71,10 +72,10 @@ box_select = BoxSelectTool()
 hover = HoverTool()
 
 hover.tooltips = [
-    ("index","$index"),
-    ("lat,lon","$x,$y"),
-    ("cost","@payments_total"),
+    ("Zip Code"," @state @zip"),
+    ("Average Total Payments","@payments_total"),
     ("Number of Discharges","@discharges")
+
 ]
 
 plot.add_tools(pan, wheel_zoom, box_select,hover)
