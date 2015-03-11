@@ -13,66 +13,73 @@ import csv
 import pandas as pd
 
 filename = 'Data/IPPSlatlon'
-x_range = Range1d()
-y_range = Range1d()
-
-
-# """Importing data file as class 'pandas.core.frame.DataFrame'"""
-# csvdata = pd.read_csv(filename)
-
-# """Adding data files as lists (one list for each header) in dictionary"""
-# data ={}
-# for key in csvdata:
-#     data[key] = []
-#     for i in csvdata.get(key):
-#         data[key].append(i)
+"""Importing data file as class 'pandas.core.frame.DataFrame'"""
+csvdata = pd.read_csv(filename)
+"""Adding data files as lists (one list for each header) in dictionary"""
+data ={}
+for key in csvdata:
+    data[key] = []
+    for i in csvdata.get(key):
+        data[key].append(i)
 
 class GMap(object):
 
-    def __init__(self):
+    """
+    This class will create a new GMap object
+    Inputs:
+        map_title
+        data
+        x_range
+        y_range
+    """
+    def __init__(self,map_title,data,x_range,y_range):
+        self.data = data
+        self.x_range = x_range
+        self.y_range = y_range
+        self.map_options = GMapOptions(lat=self.data['Latitude'][0], lng=self.data['Longtitude'][0], zoom=13)
+        self.plot = GMapPlot(
+            x_range=self.x_range, y_range=self.y_range,
+            map_options = self.map_options,
+            title = map_title
+        )
         pass
 
-    def import_data(self):
-        """Importing data file as class 'pandas.core.frame.DataFrame'"""
-        csvdata = pd.read_csv(filename)
-        """Adding data files as lists (one list for each header) in dictionary"""
-        data ={}
-        for key in csvdata:
-            data[key] = []
-            for i in csvdata.get(key):
-                data[key].append(i)
-        self.data = data
-        return self.data
-
     def set_tools(self):
-        """set and add interactive tools"""
-        pan = PanTool()
-        wheel_zoom = WheelZoomTool()
-        box_select = BoxSelectTool()
-        hover = HoverTool()
+        """
+            Method will set tools for the plot
+        """
+
+        """Set and add interactive tools"""
+        self.pan = PanTool()
+        self.wheel_zoom = WheelZoomTool()
+        self.box_select = BoxSelectTool()
+        self.hover = HoverTool()
         """Specify What is Displayed"""
-        hover.tooltips = [
+        self.hover.tooltips = [
             ("Procedure",'@DRG'),
             ("Zip Code"," @state @zip"),
             ("Average Total Payments","@payments_total"),
             ("Number of Discharges","@discharges")
         ]
 
-        self.plot.add_tools(pan, wheel_zoom, box_select,hover)
+        self.plot.add_tools(self.pan, self.wheel_zoom, self.box_select, self.hover)
 
-    def set_axis(self):
-        map_options = GMapOptions(lat=self.data['Latitude'][0], lng=self.data['Longtitude'][0], zoom=15)
-
-        plot.map_options.map_type="hybrid"
-
+    def set_plot_options(self,x_location,y_location):
+        """
+        Method takes in where you want to put the axes
+        """
+        #set x and y axis
         xaxis = LinearAxis(axis_label="lat", major_tick_in=0, formatter=NumeralTickFormatter(format="0.000"))
-        self.plot.add_layout(xaxis, 'below')
+        self.plot.add_layout(xaxis, x_location)
         yaxis = LinearAxis(axis_label="lon", major_tick_in=0, formatter=PrintfTickFormatter(format="%.3f"))
-        self.plot.add_layout(yaxis, 'left')
+        self.plot.add_layout(yaxis, y_location)
             
     def make_plot(self):
-        set_tools()
-        set_plot_options()
+        """
+        Creates the Plot
+        """
+        self.set_tools()
+        self.set_plot_options('below','left')
         source = ColumnDataSource(
             data=dict(
                 lat = self.data['Latitude'],
@@ -91,99 +98,31 @@ class GMap(object):
             )
         )
 
-        self.plot = GMapPlot(
-            x_range=x_range, y_range=y_range,
-            map_options=map_options,
-            title = "IPPS"
-        )
-
         #create all the points based on source data
-        circle = Circle(x='lon', y='lat', size=15, fill_color="blue", line_color="black")
+        circle = Circle(x='lon', y='lat', size=10, fill_color="red", line_color="white", line_width = 2)
         self.plot.add_glyph(source, circle)
 
+        #create overlay
+        overlay = BoxSelectionOverlay(tool=self.box_select)
+        self.plot.add_layout(overlay)
 
     def create_GMap(self):
         """
-        Builds the actual map
+        Builds the actual Google Map 
         """
-        import_data()
-        make_plot()
-
-        overlay = BoxSelectionOverlay(tool=box_select)
-        self.plot.add_layout(overlay)
+        self.make_plot()
         self.doc = Document()
-        self.doc.add(plot)
+        self.doc.add(self.plot)
         
-        if __name__ == "__main__":
-            filename = "maps.html"
-            with open(filename, "w") as f:
-                f.write(file_html(self.doc, INLINE, "Google Maps Example"))
-            print("Wrote %s" % filename)
-            view(filename)
 
-# map_options = GMapOptions(lat=data['Latitude'][0], lng=data['Longtitude'][0], zoom=15)
-# plot = GMapPlot(
-#     x_range=x_range, y_range=y_range,
-#     map_options=map_options,
-#     title = "IPPS"
-# )
+if __name__ == "__main__":
+    IPPS_GMap = GMap("IPPS Map",data,Range1d(),Range1d())
+    IPPS_GMap.create_GMap()
+    doc = IPPS_GMap.doc
+    filename = "maps.html"
+    with open(filename, "w") as f:
+        f.write(file_html(doc, INLINE, "IPPS Map"))
+    print("Wrote %s" % filename)
+    view(filename)
 
-# plot.map_options.map_type="hybrid"
 
-# source = ColumnDataSource(
-#     data=dict(
-#         lat = data['Latitude'],
-#         lon = data['Longtitude'],
-#         DRG = [x.lower() for x in data['DRG Definition'] ],
-#         name = data['Provider Name'],
-#         referral = data['Hospital Referral Region Description'],
-#         discharges = data['Total Discharges'],
-#         covered = data['Average Covered Charges'],
-#         payments_total = data['Average Total Payments'],
-#         payments_medical = data['Average Medicare Payments'],
-#         street = data['Provider Street Address'],
-#         city = data['Provider City'],
-#         state = data['Provider State'],
-#         zip = data['Provider Zip Code']
-#     )
-# )
-# #create all the points based on source data
-# circle = Circle(x='lon', y='lat', size=15, fill_color="blue", line_color="black")
-# plot.add_glyph(source, circle)
-
-# """set and add interactive tools"""
-# pan = PanTool()
-# wheel_zoom = WheelZoomTool()
-# box_select = BoxSelectTool()
-# hover = HoverTool()
-
-# hover.tooltips = [
-#     ("Procedure",'@DRG'),
-#     ("Zip Code"," @state @zip"),
-#     ("Average Total Payments","@payments_total"),
-#     ("Number of Discharges","@discharges")
-
-# ]
-
-# plot.add_tools(pan, wheel_zoom, box_select,hover)
-
-#set Axis
-# xaxis = LinearAxis(axis_label="lat", major_tick_in=0, formatter=NumeralTickFormatter(format="0.000"))
-# plot.add_layout(xaxis, 'below')
-# yaxis = LinearAxis(axis_label="lon", major_tick_in=0, formatter=PrintfTickFormatter(format="%.3f"))
-# plot.add_layout(yaxis, 'left')
-
-# #add overlay to plot
-# overlay = BoxSelectionOverlay(tool=box_select)
-# plot.add_layout(overlay)
-# doc = Document()
-# doc.add(plot)
-
-# if __name__ == "__main__":
-#     filename = "maps.html"
-#     with open(filename, "w") as f:
-#         f.write(file_html(doc, INLINE, "Google Maps Example"))
-#     print("Wrote %s" % filename)
-#     view(filename)
-IPPS_GMap = GMap()
-IPPS_GMap.create_GMap()
