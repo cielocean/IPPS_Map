@@ -30,11 +30,9 @@ y_range = Range1d()
 class GMap(object):
 
     def __init__(self):
-        pass
-
-    def import_data(self):
         """Importing data file as class 'pandas.core.frame.DataFrame'"""
         csvdata = pd.read_csv(filename)
+
         """Adding data files as lists (one list for each header) in dictionary"""
         data ={}
         for key in csvdata:
@@ -42,38 +40,16 @@ class GMap(object):
             for i in csvdata.get(key):
                 data[key].append(i)
         self.data = data
-        return self.data
 
-    def set_tools(self):
-        """set and add interactive tools"""
-        pan = PanTool()
-        wheel_zoom = WheelZoomTool()
-        box_select = BoxSelectTool()
-        hover = HoverTool()
-        """Specify What is Displayed"""
-        hover.tooltips = [
-            ("Procedure",'@DRG'),
-            ("Zip Code"," @state @zip"),
-            ("Average Total Payments","@payments_total"),
-            ("Number of Discharges","@discharges")
-        ]
-
-        self.plot.add_tools(pan, wheel_zoom, box_select,hover)
-
-    def set_axis(self):
         map_options = GMapOptions(lat=self.data['Latitude'][0], lng=self.data['Longtitude'][0], zoom=15)
+        
+        self.plot = GMapPlot(
+            x_range=x_range, y_range=y_range,
+            map_options=map_options,
+            title = "IPPS"
+        )
 
-        plot.map_options.map_type="hybrid"
-
-        xaxis = LinearAxis(axis_label="lat", major_tick_in=0, formatter=NumeralTickFormatter(format="0.000"))
-        self.plot.add_layout(xaxis, 'below')
-        yaxis = LinearAxis(axis_label="lon", major_tick_in=0, formatter=PrintfTickFormatter(format="%.3f"))
-        self.plot.add_layout(yaxis, 'left')
-            
-    def make_plot(self):
-        set_tools()
-        set_plot_options()
-        source = ColumnDataSource(
+        self.source = ColumnDataSource(
             data=dict(
                 lat = self.data['Latitude'],
                 lon = self.data['Longtitude'],
@@ -91,28 +67,72 @@ class GMap(object):
             )
         )
 
-        self.plot = GMapPlot(
-            x_range=x_range, y_range=y_range,
-            map_options=map_options,
-            title = "IPPS"
-        )
+    # def import_data(self):
+    #     """Importing data file as class 'pandas.core.frame.DataFrame'"""
+    #     csvdata = pd.read_csv(filename)
+
+    #     """Adding data files as lists (one list for each header) in dictionary"""
+    #     data ={}
+    #     for key in csvdata:
+    #         data[key] = []
+    #         for i in csvdata.get(key):
+    #             data[key].append(i)
+    #     self.data = data
+    #     return self.data
+
+    def set_tools(self):
+        """set and add interactive tools"""
+        self.pan = PanTool()
+        self.wheel_zoom = WheelZoomTool()
+        self.box_select = BoxSelectTool()
+        self.hover = HoverTool()
+
+        """Specify What is Displayed"""
+        self.hover.tooltips = [
+            ("Procedure","@DRG"),
+            ("Zip Code"," @state @zip"),
+            ("Average Total Payments","@payments_total"),
+            ("Number of Discharges","@discharges")
+        ]
+
+        self.plot.add_tools(self.pan, self.wheel_zoom, self.box_select,self.hover)
+
+    def set_axis(self):
+        # map_options = GMapOptions(lat=self.data['Latitude'][0], lng=self.data['Longtitude'][0], zoom=15)
+
+        self.plot.map_options.map_type="hybrid"
+
+        xaxis = LinearAxis(axis_label="lat", major_tick_in=0, formatter=NumeralTickFormatter(format="0.000"))
+        self.plot.add_layout(xaxis, 'below')
+        yaxis = LinearAxis(axis_label="lon", major_tick_in=0, formatter=PrintfTickFormatter(format="%.3f"))
+        self.plot.add_layout(yaxis, 'left')
+            
+    def make_plot(self):
+        self.set_tools()
+        self.set_axis()
+
+        # self.plot = GMapPlot(
+        #     x_range=x_range, y_range=y_range,
+        #     map_options=map_options,
+        #     title = "IPPS"
+        # )
 
         #create all the points based on source data
         circle = Circle(x='lon', y='lat', size=15, fill_color="blue", line_color="black")
-        self.plot.add_glyph(source, circle)
+        self.plot.add_glyph(self.source, circle)
 
 
     def create_GMap(self):
         """
         Builds the actual map
         """
-        import_data()
-        make_plot()
+        # import_data()
+        self.make_plot()
 
-        overlay = BoxSelectionOverlay(tool=box_select)
+        overlay = BoxSelectionOverlay(tool=self.box_select)
         self.plot.add_layout(overlay)
         self.doc = Document()
-        self.doc.add(plot)
+        self.doc.add(self.plot)
         
         if __name__ == "__main__":
             filename = "maps.html"
