@@ -13,7 +13,7 @@ from bokeh.resources import INLINE
 #from pygeocoder import Geocoder
 import csv
 
-filename = 'Data/IPPSlatlon'
+filename = 'Data/test'
 
 x_range = Range1d()
 y_range = Range1d()
@@ -26,6 +26,7 @@ def get_data (ticker):
         complist=[]
         data={}
         for line in reader:
+            print (line)
             if line['DRG Definition'] == ticker:
                 complist.append(line)
         for key in complist[0].iterkeys():
@@ -33,7 +34,7 @@ def get_data (ticker):
         return data
 
 data = get_data('039 - EXTRACRANIAL PROCEDURES W/O CC/MCC')
-# print(data)
+print(data)
 map_options = GMapOptions(lat=float(data['Latitude'][0]), lng=float(data['Longtitude'][0]), zoom=15)
 
 plot = GMapPlot(
